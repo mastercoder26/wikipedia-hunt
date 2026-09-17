@@ -8,6 +8,8 @@ const Race = lazy(() => import('@/routes/Race').then((m) => ({ default: m.Race }
 const Results = lazy(() => import('@/routes/Results').then((m) => ({ default: m.Results })))
 const Daily = lazy(() => import('@/routes/Daily').then((m) => ({ default: m.Daily })))
 const Stats = lazy(() => import('@/routes/Stats').then((m) => ({ default: m.Stats })))
+const LiveHome = lazy(() => import('@/routes/LiveHome').then((m) => ({ default: m.LiveHome })))
+const LiveRoom = lazy(() => import('@/routes/LiveRoom').then((m) => ({ default: m.LiveRoom })))
 const NotFound = lazy(() => import('@/routes/NotFound').then((m) => ({ default: m.NotFound })))
 
 export default function App() {
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="/results" element={<Results />} />
           <Route path="/daily" element={<Daily />} />
           <Route path="/stats" element={<Stats />} />
+          <Route path="/live" element={<LiveHome />} />
+          <Route path="/live/:code" element={<LiveRoom />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
