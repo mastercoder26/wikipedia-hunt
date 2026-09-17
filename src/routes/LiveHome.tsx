@@ -54,7 +54,7 @@ export function LiveHome() {
           Live Race
         </h1>
         <p className="mt-5 max-w-[42ch] text-[15px] leading-[1.6] text-[var(--ink-2)]">
-          Eight players, one countdown, one target.
+          Eight players, one countdown, one target. Keep the host tab open.
         </p>
       </Reveal>
 

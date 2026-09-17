@@ -26,28 +26,28 @@ npm install && npm run dev
 | `npm run dev` | Vite dev server |
 | `npm run build` | Typecheck and build |
 | `npm run typecheck` | App and serverless functions |
-| `npm run test` | Vitest, 76 tests |
+| `npm run test` | Vitest |
 | `npm run lint` | oxlint |
 
 ## Deploying to Vercel
 
 `vercel.json` sets the Vite preset and the SPA rewrite. Everything under `api/` deploys as
-serverless functions. Import the repo and deploy. Solo and Daily need no configuration.
+serverless functions. Import the repo and deploy. Solo, Daily, and Live need no extra
+configuration. Live Race is WebRTC: the host tab is the room, and everyone else joins with
+the code. Keep that host tab open.
 
-Cross-device Live Race and the global Daily leaderboard need an [Upstash Redis](https://upstash.com)
-database and two environment variables:
+The global Daily leaderboard still needs [Upstash Redis](https://upstash.com) if you want
+standings across devices:
 
 ```
 UPSTASH_REDIS_REST_URL=...
 UPSTASH_REDIS_REST_TOKEN=...
 ```
 
-Without them the app still works. Live Race falls back to a `BroadcastChannel` transport, which
-races players in tabs of the same browser but not across devices, and the Daily leaderboard says it
-is unavailable rather than showing invented standings. Local daily records, streaks and share cards
-are unaffected.
+Without those, Daily still works locally. The leaderboard says it is unavailable rather
+than showing invented standings.
 
-Set `VITE_MULTIPLAYER` to `local` or `http` to pin the transport and skip the auto-detect probe.
+Set `VITE_MULTIPLAYER` to `local` or `http` only if you want to pin a non-WebRTC transport.
 
 ## How it works
 
@@ -84,7 +84,7 @@ src/
   lib/
     wiki/         Wikipedia API client and HTML sanitizer
     game/         race state machine, storage, stats, awards, formatting, route finder
-    multiplayer/  room transports, pure room logic, useRoom hook
+    multiplayer/  room transports (WebRTC default), pure room logic, useRoom hook
   data/           119 curated challenges across 7 categories, Daily Dash generator
 api/              Vercel serverless: room API and daily leaderboard
 ```

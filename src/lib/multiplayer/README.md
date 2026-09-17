@@ -6,48 +6,24 @@ Everything the UI needs is exported from `@/lib/multiplayer`:
 import { getTransport, useRoom, generateRoomCode } from '@/lib/multiplayer'
 ```
 
-`getTransport()` returns a `RoomTransport` (see `transport.ts`). All room rules
-live in `roomLogic.ts` as pure, immutable functions shared by the client and the
-serverless API, so the two can never disagree.
+`getTransport()` returns a `RoomTransport` (see `transport.ts`). Room rules live
+in `roomLogic.ts` as pure, immutable functions. The WebRTC host applies them;
+guests send actions over a data channel.
 
-## Two transports
+## Transports
 
-| | `localTransport` | `httpTransport` |
-|---|---|---|
-| Backing store | `localStorage` + `BroadcastChannel` | `/api/room/*` serverless functions |
-| Reach | tabs on one machine | any device, anywhere |
-| Backend needed | none | Vercel + Upstash Redis |
-| Role | dev default and fallback | production |
+| | `webrtcTransport` | `localTransport` | `httpTransport` |
+|---|---|---|---|
+| Backing store | Host tab, WebRTC data channel | `localStorage` + `BroadcastChannel` | `/api/room/*` |
+| Reach | any device, while the host tab is open | tabs on one machine | any device with Redis |
+| Backend needed | PeerJS signaling (free) + STUN | none | Vercel + Upstash Redis |
+| Role | default | `VITE_MULTIPLAYER=local` | `VITE_MULTIPLAYER=http` |
 
-`localTransport` falls back to the `storage` event when `BroadcastChannel` is
-unavailable, and to an in-memory map when `localStorage` is blocked. Players
-whose `lastSeen` is older than 30s are pruned on every read.
+The host creates a 4-character code. That code is the PeerJS peer id
+(`wikidash-ABCD`). Joiners open a data channel to the host. If the host closes
+the tab, the room ends.
 
-`getTransport()` picks `httpTransport` when `VITE_MULTIPLAYER=http`, or when a
-background probe of `GET /api/room/health` succeeds. Set `VITE_MULTIPLAYER=local`
-to pin the local transport and skip the probe entirely.
-
-## Enabling real cross-device multiplayer on Vercel
-
-1. Create an Upstash Redis database (Vercel Marketplace → Upstash, or
-   upstash.com) and copy its REST credentials.
-2. Set these Environment Variables on the Vercel project (Production + Preview):
-
-   | Variable | Value |
-   |---|---|
-   | `UPSTASH_REDIS_REST_URL` | `https://<your-db>.upstash.io` |
-   | `UPSTASH_REDIS_REST_TOKEN` | the REST token from Upstash |
-   | `VITE_MULTIPLAYER` | `http` |
-
-3. Redeploy. `GET /api/room/health` reports `{ ok: true, backend: "upstash" }`
-   when the Redis path is live.
-
-Without the two `UPSTASH_*` variables the API falls back to an in-module `Map`.
-That is fine for `vercel dev`, but on Vercel each lambda instance has its own
-Map, so two players can land on different instances and never see each other.
-**Configure Upstash for any real deployment.**
-
-Rooms are stored as JSON under `wikidash:room:<CODE>` with a 2-hour TTL.
+Players whose `lastSeen` is older than 30s are pruned on every host read.
 
 ## Polling
 
