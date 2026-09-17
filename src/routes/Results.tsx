@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { Page } from '@/components/Shell'
 import { Reveal } from '@/components/Reveal'
 import { Button, EmptyState, Eyebrow, Stat, Tag } from '@/components/ui'
+import { ShareCard } from '@/components/ShareCard'
+import { ArticleImage } from '@/components/ArticleImage'
+import { useArticleImages } from '@/hooks/useArticleImages'
 import { useRace } from '@/lib/game/raceStore'
-import { formatDuration, formatPathArrow } from '@/lib/game/format'
+import { buildShareCard, formatDuration, formatPathArrow } from '@/lib/game/format'
 import { loadState } from '@/lib/game/storage'
+import { dailyNumber } from '@/data/daily'
 import { findRoute } from '@/lib/game/route'
 import type { PathStep } from '@/lib/types'
 
@@ -17,6 +21,9 @@ export function Results() {
   const [routeBusy, setRouteBusy] = useState(false)
 
   const durationMs = startedAt && finishedAt ? finishedAt - startedAt : 0
+  const images = useArticleImages(
+    useMemo(() => (challenge ? [challenge.start.title, challenge.target.title] : []), [challenge]),
+  )
   const surrendered = status === 'surrendered'
 
   const previousBest = useMemo(() => {
@@ -24,6 +31,7 @@ export function Results() {
     return loadState().personalBests?.[challenge.id]
   }, [challenge])
 
+  // Mirrors storage's record rule: fewer clicks wins, ties broken on time.
   const isPersonalBest =
     !surrendered &&
     (!previousBest ||
@@ -51,6 +59,11 @@ export function Results() {
   }
 
   const avgPerClick = clicks > 0 ? durationMs / clicks : 0
+  const share = buildShareCard(
+    { challengeId: challenge.id, mode, durationMs, clicks, path, finishedAt: finishedAt ?? 0, surrendered },
+    challenge,
+    mode === 'daily' ? dailyNumber() : undefined,
+  )
 
   async function revealRoute() {
     if (!challenge) return
@@ -76,6 +89,28 @@ export function Results() {
           </span>
           <span>{challenge.target.title}</span>
         </h1>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center max-w-2xl">
+          <ArticleImage
+            title={challenge.start.title}
+            image={images.get(challenge.start.title)}
+            label="Start"
+            aspect="aspect-[16/10]"
+          />
+          <span
+            aria-hidden="true"
+            className="display display-lg justify-self-center text-[28px] text-[var(--accent)]"
+          >
+            →
+          </span>
+          <ArticleImage
+            title={challenge.target.title}
+            image={images.get(challenge.target.title)}
+            label="Target"
+            tone="accent"
+            aspect="aspect-[16/10]"
+          />
+        </div>
 
         <div className="mt-11 grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-6">
           <Stat value={formatDuration(durationMs)} label="Time" accent size="lg" />
@@ -118,33 +153,42 @@ export function Results() {
           <RouteList path={path} targetTitle={challenge.target.title} />
         </section>
 
-        {surrendered ? (
-          <section>
-            <h2 className="display display-sm text-[17px] text-[var(--ink)] mb-5">A route that works</h2>
-            <div className="pt-5">
-              {suggested ? (
-                suggested.length > 0 ? (
-                  <p className="display display-sm text-[19px] leading-snug text-[var(--ink)]">
-                    {suggested.join('  →  ')}
-                  </p>
+        <div>
+          {surrendered ? (
+            <section className="mb-14">
+              <h2 className="display display-sm text-[17px] text-[var(--ink)] mb-5">A route that works</h2>
+              <div className="pt-5">
+                {suggested ? (
+                  suggested.length > 0 ? (
+                    <p className="display display-sm text-[19px] leading-snug text-[var(--ink)]">
+                      {suggested.join('  →  ')}
+                    </p>
+                  ) : (
+                    <p className="text-[13.5px] text-[var(--ink-3)]">
+                      No route was found within the search budget. Some pairs are that far apart.
+                    </p>
+                  )
                 ) : (
-                  <p className="text-[13.5px] text-[var(--ink-3)]">
-                    No route was found within the search budget. Some pairs are that far apart.
-                  </p>
-                )
-              ) : (
-                <>
-                  <p className="text-[13.5px] leading-relaxed text-[var(--ink-2)]">
-                    Search Wikipedia&rsquo;s links for a route you could have taken.
-                  </p>
-                  <Button size="sm" className="mt-4" onClick={() => void revealRoute()} disabled={routeBusy}>
-                    {routeBusy ? 'Searching' : 'Show me'}
-                  </Button>
-                </>
-              )}
+                  <>
+                    <p className="text-[13.5px] leading-relaxed text-[var(--ink-2)]">
+                      Search Wikipedia&rsquo;s links for a route you could have taken.
+                    </p>
+                    <Button size="sm" className="mt-4" onClick={revealRoute} disabled={routeBusy}>
+                      {routeBusy ? 'Searching' : 'Show me'}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </section>
+          ) : null}
+
+          <section>
+            <h2 className="display display-sm text-[17px] text-[var(--ink)] mb-5">Share</h2>
+            <div className="pt-5">
+              <ShareCard text={share} />
             </div>
           </section>
-        ) : null}
+        </div>
       </div>
     </Page>
   )
