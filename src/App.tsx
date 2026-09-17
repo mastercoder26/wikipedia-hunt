@@ -3,6 +3,7 @@ import { LazyMotion, domAnimation } from 'motion/react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Home } from '@/routes/Home'
 
+const Play = lazy(() => import('@/routes/Play').then((m) => ({ default: m.Play })))
 const NotFound = lazy(() => import('@/routes/NotFound').then((m) => ({ default: m.NotFound })))
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
       <Suspense fallback={<div className="min-h-full bg-[var(--paper)]" />}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/play" element={<Play />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
