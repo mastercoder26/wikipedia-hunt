@@ -2,10 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WikiDash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>WikiDash: race through Wikipedia</title>
+    <meta
+      name="description"
+      content="Race from one Wikipedia article to another using only the links inside the page. Play solo, in a live room of up to eight players, or on the shared daily challenge."
+    />
+    <meta name="theme-color" content="#0f0f0e" />
+    <meta property="og:title" content="WikiDash" />
+    <meta property="og:description" content="Get from here to there using only links." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
   </head>
   <body>
+    <script>
+      // Set before first paint: without this the page flashes light while the
+      // bundle loads, which is worse than any theme being wrong.
+      try {
+        document.documentElement.setAttribute(
+          'data-theme',
+          localStorage.getItem('wikidash:theme') === 'light' ? 'light' : 'dark',
+        )
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark')
+      }
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

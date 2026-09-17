@@ -1,4 +1,262 @@
-html, body, #root {
-  height: 100%;
-  margin: 0;
+@import "tailwindcss";
+
+/* Design tokens.
+   Warm paper, hairline rules and one accent. Surfaces are separated by rules,
+   the way a printed page is, not by rounded cards with shadows. Link colors
+   stay Wikipedia's blue and visited-purple: in this game link color is data. */
+@theme {
+  --font-display: Inter, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
 }
+
+/* Dark is the default theme. Light is opt-in via data-theme. */
+:root {
+  --paper: #0f0f0e;
+  --paper-2: #1a1a18;
+  --raised: #171716;
+  --rule: #33322e;
+  --rule-soft: #262523;
+  --ink: #f4f2ed;
+  --ink-2: #b3afa6;
+  --ink-3: #8a857b;
+  --accent: #6cc79b;
+  --accent-ink: #08130d;
+  --accent-wash: #16241d;
+  --accent-line: #2d5443;
+  --link: #7fa8f0;
+  --link-visited: #b79ce6;
+  --good: #6cc79b;
+  --scrim: 0 0 0;
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 0.55), 0 10px 30px -10px rgb(0 0 0 / 0.7);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 14px 36px -14px rgb(0 0 0 / 0.75);
+  --radius: 20px;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --paper: #f6f4ef;
+  --paper-2: #ebe8e0;
+  --raised: #ffffff;
+  --rule: #d3cec2;
+  --rule-soft: #e1ddd3;
+  --ink: #16150f;
+  --ink-2: #4a4740;
+  --ink-3: #6f695d;
+  --accent: #1f6a4c;
+  --accent-ink: #f6f5f0;
+  --accent-wash: #dcebe3;
+  --accent-line: #a8ccb9;
+  --link: #2b58a6;
+  --link-visited: #6b4c99;
+  --good: #1f6a4c;
+  --scrim: 20 18 13;
+  --shadow-float: 0 1px 2px rgb(26 22 16 / 0.05), 0 8px 24px -8px rgb(26 22 16 / 0.12);
+  --shadow-card: 0 1px 2px rgb(26 22 16 / 0.04), 0 12px 32px -12px rgb(26 22 16 / 0.14);
+  --radius: 20px;
+  color-scheme: light;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141310; --paper-2: #1e1d18; --raised: #1a1915;
+    --rule: #35332b; --rule-soft: #272620;
+    --ink: #f2f0e8; --ink-2: #b4afa3; --ink-3: #8d887b;
+    --accent: #6cc79b; --accent-ink: #0b1a13; --accent-wash: #17271f; --accent-line: #2d5443;
+    --link: #7fa8f0; --link-visited: #b79ce6; --good: #6cc79b;
+    --scrim: 5 5 4;
+    --shadow-float: 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 24px -8px rgb(0 0 0 / 0.6);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.45), 0 12px 32px -12px rgb(0 0 0 / 0.65);
+    color-scheme: dark;
+  }
+}
+
+/* Must live in @layer base: an unlayered rule outranks every Tailwind
+   utility, which would silently override each explicit border colour. */
+@layer base {
+  * { border-color: var(--rule-soft); }
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Display type. A tight grotesque set solid, the way a wordmark is. Tracking
+   is size-specific, never one value for every size: letters read too far
+   apart as they grow, so large text tightens hard and small text sits near
+   zero. Leading moves inversely to size. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  font-optical-sizing: auto;
+}
+
+/* Optical corrections at the sizes this interface actually uses. */
+.display-xl { font-weight: 700; letter-spacing: -0.045em; line-height: 0.92; }
+.display-lg { font-weight: 700; letter-spacing: -0.035em; line-height: 0.96; }
+.display-sm { font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; }
+
+/* The full-bleed wordmark: set as large as the viewport allows, cropped by
+   the edges rather than fitted inside them. */
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.8;
+  white-space: nowrap;
+}
+
+/* The tiny tracked uppercase label that marks every section and every value. */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Numbers that change in place must not shift the layout. */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+@keyframes wd-shimmer { 100% { transform: translateX(100%) } }
+
+/* Press feedback lives on pointer-down and is effectively instant. Waiting
+   for the click to land reads as lag, and the feeling of directness goes
+   with it. */
+.press {
+  transition: transform 90ms cubic-bezier(.2,0,.2,1), background-color 140ms linear,
+    color 140ms linear, border-color 140ms linear, opacity 140ms linear;
+  touch-action: manipulation;
+}
+.press:active { transform: scale(0.975) }
+
+/* Chrome floats above the content as its own object rather than occupying a
+   band of the screen. Translucent, so content passes visibly beneath it. */
+.chrome {
+  background: color-mix(in srgb, var(--raised) 78%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: var(--shadow-float);
+}
+
+/* A frosted label sitting on top of something else: a tag on an image, a
+   count on a strip. Light material, so never stack it on another. */
+.frost {
+  background: color-mix(in srgb, var(--raised) 62%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+.wd-skeleton { position: relative; overflow: hidden; background: var(--paper-2) }
+.wd-skeleton::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--raised) 70%, transparent), transparent);
+  animation: wd-shimmer 1.25s infinite;
+}
+
+/* Frostier and solid rather than translucent, when asked. */
+@media (prefers-reduced-transparency: reduce) {
+  .chrome { background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none }
+}
+
+@media (prefers-contrast: more) {
+  :root { --rule: var(--ink-2); --rule-soft: var(--ink-3) }
+  .chrome { background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Sanitized Wikipedia article body. */
+.wd-article {
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+.wd-article h1, .wd-article h2, .wd-article h3, .wd-article h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 1.7em 0 .45em;
+  color: var(--ink);
+}
+.wd-article h2 { font-size: 1.75rem; border-bottom: 1px solid var(--rule-soft); padding-bottom: .2em }
+.wd-article h3 { font-size: 1.35rem }
+.wd-article p { margin: 0 0 1.05em }
+.wd-article ul, .wd-article ol { margin: 0 0 1.05em; padding-left: 1.5em }
+.wd-article li { margin-bottom: .3em }
+.wd-article b, .wd-article strong { font-weight: 600 }
+.wd-article img { max-width: 100%; height: auto; border-radius: 12px }
+.wd-article figure, .wd-article .thumb { margin: 0 0 1.6em; }
+.wd-article figcaption, .wd-article .thumbcaption {
+  font-size: 12px; color: var(--ink-3); margin-top: .55rem; line-height: 1.5;
+}
+.wd-article table { border-collapse: collapse; font-size: 13px; max-width: 100%; display: block; overflow-x: auto }
+.wd-article table.infobox {
+  display: table; float: none; width: 100%; margin: 0 0 1.6em;
+  background: var(--raised); border-radius: var(--radius); overflow: hidden;
+}
+.wd-article .infobox th, .wd-article .infobox td {
+  padding: .5rem .85rem; text-align: left; vertical-align: top;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.wd-article .infobox th { color: var(--ink-2); font-weight: 600 }
+.wd-article blockquote { margin: 0 0 1em; padding-left: 1rem; border-left: 2px solid var(--rule); color: var(--ink-2) }
+.wd-article code, .wd-article pre { font-family: var(--font-mono); font-size: .88em }
+.wd-article .hatnote { font-style: italic; color: var(--ink-3); margin-bottom: 1.2em; font-size: 14px }
+
+/* Playable links. */
+.wd-article a.wd-link {
+  color: var(--link);
+  text-decoration: none;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--link) 30%, transparent);
+  cursor: pointer;
+  transition: background-color .12s linear, color .12s linear, box-shadow .12s linear;
+}
+.wd-article a.wd-link:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.wd-article a.wd-link[data-visited="true"] {
+  color: var(--link-visited);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--link-visited) 30%, transparent);
+}
+.wd-article a.wd-link[data-target="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  box-shadow: 0 0 0 2px var(--accent);
+  animation: wd-breathe 2.6s ease-in-out infinite;
+}
+/* Slow enough to read as alive, not as a blink. */
+@keyframes wd-breathe {
+  0%, 100% { box-shadow: 0 0 0 2px var(--accent) }
+  50% { box-shadow: 0 0 0 5px var(--accent-wash) }
+}
+/* Disabled links keep their text so the article still reads. */
+.wd-article .wd-link-disabled { color: var(--ink-2); cursor: default; text-decoration: none }
