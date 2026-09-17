@@ -5,11 +5,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { RoomState } from '@/lib/types'
 import type { RoomTransport, TransportKind } from '@/lib/multiplayer/transport'
 import { localTransport } from '@/lib/multiplayer/localTransport'
-import { httpTransport, probeApi } from '@/lib/multiplayer/httpTransport'
+import { httpTransport } from '@/lib/multiplayer/httpTransport'
+import { webrtcTransport } from '@/lib/multiplayer/webrtcTransport'
 
 export type { RoomTransport, TransportKind } from '@/lib/multiplayer/transport'
 export { localTransport } from '@/lib/multiplayer/localTransport'
 export { httpTransport } from '@/lib/multiplayer/httpTransport'
+export { webrtcTransport } from '@/lib/multiplayer/webrtcTransport'
 export {
   generateRoomCode,
   normalizeRoomCode,
@@ -29,17 +31,21 @@ export const HEARTBEAT_INTERVAL_MS = 5000
 
 const configured = import.meta.env.VITE_MULTIPLAYER as string | undefined
 
-let activeKind: TransportKind = configured === 'http' ? 'http' : 'local'
-let probe: Promise<TransportKind> | null = null
+let activeKind: TransportKind =
+  configured === 'local' ? 'local' : configured === 'http' ? 'http' : 'webrtc'
+
+function transportFor(kind: TransportKind): RoomTransport {
+  if (kind === 'http') return httpTransport
+  if (kind === 'local') return localTransport
+  return webrtcTransport
+}
 
 /**
- * The transport to use right now. Defaults to `localTransport` and upgrades to
- * `httpTransport` when VITE_MULTIPLAYER=http, or once the background probe of
- * /api/room/health comes back green.
+ * The transport to use right now. Defaults to WebRTC. Pin with
+ * VITE_MULTIPLAYER=local, http, or webrtc.
  */
 export function getTransport(): RoomTransport {
-  if (configured !== 'http' && configured !== 'local') void resolveTransport()
-  return activeKind === 'http' ? httpTransport : localTransport
+  return transportFor(activeKind)
 }
 
 /**
@@ -56,18 +62,9 @@ export function getTransportKind(): TransportKind {
   return activeKind
 }
 
-/** Runs (and caches) the health probe when the transport is not pinned by env. */
+/** Resolves the transport. WebRTC is the default unless VITE_MULTIPLAYER pins another. */
 export function resolveTransport(): Promise<TransportKind> {
-  if (configured === 'http' || configured === 'local') {
-    return Promise.resolve(activeKind)
-  }
-  if (!probe) {
-    probe = probeApi().then((healthy) => {
-      activeKind = healthy ? 'http' : 'local'
-      return activeKind
-    })
-  }
-  return probe
+  return Promise.resolve(activeKind)
 }
 
 export interface UseRoomResult {

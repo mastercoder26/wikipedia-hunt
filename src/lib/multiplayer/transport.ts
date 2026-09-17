@@ -1,5 +1,5 @@
-// One interface, two implementations: BroadcastChannel (same machine, zero
-// backend) and HTTP polling against /api/room/* (cross device on Vercel).
+// One interface, three implementations: WebRTC (default; the host tab is the
+// room), BroadcastChannel (same machine), and HTTP polling against /api/room/*.
 // Anything in the UI layer should depend on this type, never on a concrete
 // transport, so the backend stays swappable.
 
@@ -24,4 +24,4 @@ export interface RoomTransport {
 }
 
 /** Identifies which implementation `getTransport()` handed back. */
-export type TransportKind = 'local' | 'http'
+export type TransportKind = 'local' | 'http' | 'webrtc'

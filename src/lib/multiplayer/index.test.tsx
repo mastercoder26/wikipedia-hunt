@@ -19,6 +19,14 @@ vi.mock('@/lib/multiplayer/httpTransport', () => ({
   probeApi: vi.fn(() => Promise.resolve(false)),
 }))
 
+vi.mock('@/lib/multiplayer/webrtcTransport', () => ({
+  webrtcTransport: {
+    get: mocks.get,
+    patchPlayer: vi.fn(() => Promise.reject(new Error('not joined'))),
+  },
+  createWebRtcTransport: vi.fn(),
+}))
+
 import { useRoom } from '@/lib/multiplayer'
 
 function deferred<T>() {
