@@ -3,6 +3,9 @@ import { LazyMotion, domAnimation } from 'motion/react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Home } from '@/routes/Home'
 
+// Home is in the initial bundle because it is the first paint. Everything else
+// is fetched when the player actually goes there, which keeps the landing
+// payload from carrying the challenge catalog, the article reader and confetti.
 const Play = lazy(() => import('@/routes/Play').then((m) => ({ default: m.Play })))
 const Race = lazy(() => import('@/routes/Race').then((m) => ({ default: m.Race })))
 const Results = lazy(() => import('@/routes/Results').then((m) => ({ default: m.Results })))
@@ -16,6 +19,8 @@ export default function App() {
   return (
     <LazyMotion features={domAnimation} strict>
       <BrowserRouter>
+      {/* Blank rather than a spinner: these chunks resolve in a frame or two on
+          a warm cache, and a flashed spinner reads worse than nothing. */}
       <Suspense fallback={<div className="min-h-full bg-[var(--paper)]" />}>
         <Routes>
           <Route path="/" element={<Home />} />
