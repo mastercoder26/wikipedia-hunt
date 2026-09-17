@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Home } from '@/routes/Home'
 
 const Play = lazy(() => import('@/routes/Play').then((m) => ({ default: m.Play })))
+const Race = lazy(() => import('@/routes/Race').then((m) => ({ default: m.Race })))
 const NotFound = lazy(() => import('@/routes/NotFound').then((m) => ({ default: m.NotFound })))
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/play" element={<Play />} />
+          <Route path="/race" element={<Race />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
